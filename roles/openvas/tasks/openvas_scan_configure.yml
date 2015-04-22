@@ -25,5 +25,3 @@
   shell: "omp --start-task {{ item.stdout }}"
   with_items: task_uuid.results
   when: openvas_targets is defined
-
-

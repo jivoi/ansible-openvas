@@ -12,11 +12,16 @@
   with_items: openvas_apt_packages['openvas_all_pkgs']
 
 - name: Install OpenVAS from source - cmake make make install
-  #command: "cmake .."
   shell: "cmake ..;make;make doc-full;make install"
   args:
     chdir: "{{ openvas_src_path }}/{{ item.url | basename | replace('.tar.gz', '') }}/build"
-  with_items: openvas_src_packages
+  with_items: openvas_src_packages['openvas_pkgs']
+
+- name: Install Ospd from source
+  shell: "python setup.py install"
+  args:
+    chdir: "{{ openvas_src_path }}/{{ item.url | basename | replace('.tar.gz', '') }}/"
+  with_items: openvas_src_packages['ospd_pkgs']
 
 - name: Reload libraries
   command: ldconfig
@@ -29,7 +34,7 @@
   with_items:
     - { src: "init.d/openvas-manager", dest: "/etc/init.d/openvas-manager", mode: "0755" }
     - { src: "init.d/openvas-scanner", dest: "/etc/init.d/openvas-scanner", mode: "0755" }
-    - { src: "init.d/greenbone-security-assistant", dest: "/etc/init.d/openvas-scanner", mode: "0755" }
+    - { src: "init.d/greenbone-security-assistant", dest: "/etc/init.d/greenbone-security-assistant", mode: "0755" }
     - { src: "default/openvas-manager", dest: "/etc/default/openvas-manager" }
     - { src: "default/openvas-scanner", dest: "/etc/default/openvas-scanner" }
     - { src: "default/greenbone-security-assistant", dest: "/etc/default/greenbone-security-assistant" }

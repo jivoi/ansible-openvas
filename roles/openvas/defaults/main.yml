@@ -47,12 +47,14 @@ openvas_apt_packages:
 openvas_src_path: "/usr/local/src"
 
 openvas_src_packages:
+  openvas_pkgs:
   - { name: "openvas-smb", url: "http://wald.intevation.org/frs/download.php/1975/openvas-smb-1.0.1.tar.gz" }
   - { name: "openvas_library", url: "http://wald.intevation.org/frs/download.php/2015/openvas-libraries-8.0.1.tar.gz" }
   - { name: "openvas_scanner", url: "http://wald.intevation.org/frs/download.php/2016/openvas-scanner-5.0.1.tar.gz" }
   - { name: "openvas_manager", url: "http://wald.intevation.org/frs/download.php/2017/openvas-manager-6.0.1.tar.gz" }
   - { name: "openvas-cli", url: "http://wald.intevation.org/frs/download.php/1987/openvas-cli-1.4.0.tar.gz" }
   - { name: "greenbone-security-assistant", url: "http://wald.intevation.org/frs/download.php/2018/greenbone-security-assistant-6.0.1.tar.gz" }
+  ospd_pkgs:
   - { name: "ospd", url: "http://wald.intevation.org/frs/download.php/1999/ospd-1.0.0.tar.gz" }
   - { name: "ospd-ancor", url: "http://wald.intevation.org/frs/download.php/2005/ospd-ancor-1.0.0.tar.gz" }
   - { name: "ospd-ovaldi", url: "http://wald.intevation.org/frs/download.php/2003/ospd-ovaldi-1.0.0.tar.gz" }
