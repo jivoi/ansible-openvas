@@ -40,6 +40,7 @@ openvas_apt_packages:
     - sqlfairy
     - sqlite3
     - uuid-dev
+    - python-setuptools
     - wamerican
     - xmltoman
     - xsltproc
