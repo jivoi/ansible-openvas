@@ -1,0 +1,2 @@
+[openvas]
+localhost ansible_connection=local

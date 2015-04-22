@@ -1,0 +1,21 @@
+Ansible OpenVAS Playbook
+www.openvas.org
+
+Installing OpenVAS 8 on Ubuntu Server from source
+
+Base on:
+http://www.mockel.se/index.php/2015/04/openvas-8-on-ubuntu-server-14-04/
+https://github.com/odyssey4me/ansible-openvas
+
+To install
+wget https://raw.githubusercontent.com/jivoi/ansible-openvas/master/bootstrap.sh
+chmod +x bootstrap.sh
+./bootstrap.sh
+
+or
+
+sudo apt-get update
+sudo apt-get install -y git ansible 
+git clone https://github.com/jivoi/ansible-openvas.git
+cd  ansible-openvas
+ansible-playbook playbook.yml -i hosts --ask-sudo-pass

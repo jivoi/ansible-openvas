@@ -1,0 +1,17 @@
+/var/log/openvas/openvassd.messages {
+  missingok
+  notifempty
+  create 640 root adm
+  daily
+  rotate 7
+  compress
+  postrotate
+    if [ -s /usr/local/var/run/openvassd.pid ]; then kill -1 `cat /usr/local/var/run/openvassd.pid`; fi
+    openvaslogs=`ls /var/log/openvas/openvassd.messages.*`
+    if [ -n "$openvaslogs" ]; then
+        chown root:adm $openvaslogs
+        chmod 640 $openvaslogs
+    fi
+  endscript
+}
+

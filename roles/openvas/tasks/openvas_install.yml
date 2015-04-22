@@ -1,0 +1,39 @@
+---
+- name: Install packages for OpenVAS
+  apt:
+    pkg: "{{ item }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 600
+  register: install_packages
+  until: install_packages|success
+  retries: 5
+  delay: 2
+  with_items: openvas_apt_packages['openvas_all_pkgs']
+
+- name: Install OpenVAS from source - cmake make make install
+  #command: "cmake .."
+  shell: "cmake ..;make;make doc-full;make install"
+  args:
+    chdir: "{{ openvas_src_path }}/{{ item.url | basename | replace('.tar.gz', '') }}/build"
+  with_items: openvas_src_packages
+
+- name: Reload libraries
+  command: ldconfig
+
+- name: Deploy the upstart, init and logrotate files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode|default('0644') }}"
+  with_items:
+    - { src: "init.d/openvas-manager", dest: "/etc/init.d/openvas-manager", mode: "0755" }
+    - { src: "init.d/openvas-scanner", dest: "/etc/init.d/openvas-scanner", mode: "0755" }
+    - { src: "init.d/greenbone-security-assistant", dest: "/etc/init.d/openvas-scanner", mode: "0755" }
+    - { src: "default/openvas-manager", dest: "/etc/default/openvas-manager" }
+    - { src: "default/openvas-scanner", dest: "/etc/default/openvas-scanner" }
+    - { src: "default/greenbone-security-assistant", dest: "/etc/default/greenbone-security-assistant" }
+    - { src: "logrotate.d/openvas-manager", dest: "/etc/logrotate.d/openvas-manager" }
+    - { src: "logrotate.d/openvas-scanner", dest: "/etc/logrotate.d/openvas-scanner" }
+    - { src: "logrotate.d/greenbone-security-assistant", dest: "/etc/logrotate.d/greenbone-security-assistant" }
+

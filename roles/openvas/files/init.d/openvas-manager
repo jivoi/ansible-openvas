@@ -1,0 +1,150 @@
+#!/bin/sh -e
+#
+# /etc/init.d/openvas-manager
+#
+### BEGIN INIT INFO
+# Provides:          openvas-manager
+# Required-Start:    $remote_fs
+# Required-Stop:     $remote_fs
+# Should-Start:      
+# Should-Stop:       
+# Default-Start:     
+# Default-Stop:      0 6
+# Short-Description: Start and stop the OpenVAS Manager
+# Description:       Controls the OpenVAS daemon "openvasmd".
+### END INIT INFO
+
+# time to wait for daemons death, in seconds
+# don't set it too low or you might not let openvasmd die gracefully
+DODTIME=10
+
+# Read config
+[ -r /etc/default/openvas-manager ] && . /etc/default/openvas-manager
+
+#[ "$DATABASE_FILE" ]   && DAEMONOPTS="--database="$DATABASE_FILE
+[ "$MANAGER_ADDRESS" ] && DAEMONOPTS="$DAEMONOPTS --listen=$MANAGER_ADDRESS"
+[ "$MANAGER_PORT" ]    && DAEMONOPTS="$DAEMONOPTS --port=$MANAGER_PORT"
+[ "$SCANNER_ADDRESS" ] && DAEMONOPTS="$DAEMONOPTS --scanner-host=$SCANNER_ADDRESS"
+[ "$SCANNER_PORT" ]    && DAEMONOPTS="$DAEMONOPTS --scanner-port=$SCANNER_PORT"
+
+DAEMON=/usr/local/sbin/openvasmd
+PIDFILE=/usr/local/var/run/openvasmd.pid
+NAME=openvasmd
+LABEL="OpenVAS Manager"
+
+test -x $DAEMON || exit 0
+
+
+running()
+{
+    # No pidfile, probably no daemon present
+    #
+    [ ! -f "$PIDFILE" ] && return 1
+    pid=`cat $PIDFILE`
+
+    # No pid, probably no daemon present
+    [ -z "$pid" ] && return 1
+
+    [ ! -d /proc/$pid ] &&  return 1
+    cmd=`cat /proc/$pid/cmdline | tr "\000" "\n"|head -n 1 |cut -d : -f 1`
+    # No openvasmd?
+    [ `basename "$cmd"` != "$NAME" ] &&  return 1
+
+    return 0
+}
+
+start_daemon() {
+        start-stop-daemon --start --exec $DAEMON -- $DAEMONOPTS 2>&1 >/dev/null
+	errcode=$?
+# If we don't sleep then running() might not see the pidfile
+	sleep $DODTIME
+	return $errcode
+}
+
+force_stop() {
+	[ ! -e "$PIDFILE" ] && return
+	if running ; then
+		kill -15 $pid
+	# Is it really dead?
+		sleep "$DODTIME"s
+		if running ; then
+			kill -9 $pid
+			sleep "$DODTIME"s
+			if running ; then
+				echo "Cannot kill $LABEL (pid=$pid)!"
+				exit 1
+			fi
+		fi
+	fi
+	rm -f $PIDFILE
+}
+
+case "$1" in
+  start)
+    echo -n "Starting $LABEL: "
+    if start_daemon && running ;  then
+	    echo "openvasmd."
+    else
+    	    echo "ERROR."
+	    exit 1
+    fi
+    ;;
+  stop)
+    echo -n "Stopping $LABEL: "
+    if running ; then
+	start-stop-daemon --stop --pidfile $PIDFILE --quiet --oknodo --exec $DAEMON
+    	sleep "$DODTIME"s
+    fi
+    if running; then
+        force_stop
+    fi
+    echo "openvasmd."
+      ;;
+  restart)
+    echo -n "Restarting $LABEL: "
+    if running; then
+    	start-stop-daemon --stop --pidfile $PIDFILE --quiet --oknodo --exec $DAEMON
+    	sleep "$DODTIME"s
+    fi
+    if running; then
+        force_stop
+    fi
+    if start_daemon && running ;  then
+	    echo "openvasmd."
+    else
+    	    echo "ERROR."
+	    exit 1
+    fi
+    ;;
+  reload|force-reload)
+    echo  -n "Reloading $LABEL configuration files: "
+    start-stop-daemon --stop --pidfile $PIDFILE --signal 1 --exec $DAEMON
+    sleep "$DODTIME"s
+    if running ;  then
+	    echo "done."
+    else
+    	    echo "ERROR."
+	    exit 1
+    fi
+    ;;
+  status)
+    echo -n "$LABEL is "
+    if running ;  then
+	    echo "running"
+    else
+    	    echo " not running."
+	    exit 1
+    fi
+    ;;
+  rebuild)
+    echo "Rebuilding the NVT cache"
+    $DAEMON $DAEMONOPTS --rebuild
+    ;;
+  *)
+    echo "Usage: /etc/init.d/openvas-manager {start|stop|restart|reload|status|update|rebuild}"
+    exit 1
+    ;;
+esac
+
+exit 0
+

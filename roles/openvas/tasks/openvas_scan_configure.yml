@@ -1,0 +1,29 @@
+---
+- name: Add hosts to scan
+  shell: "omp --xml='<create_target><name>{{ item.address }}</name><hosts>{{ item.address }}</hosts></create_target>'"
+  with_items: openvas_targets
+  when: openvas_targets is defined
+
+- name: Derive the config_uuid
+  shell: "omp --get-configs | awk '/Full and fast$/ {print $1}'"
+  when: openvas_targets is defined
+  register: config_uuid
+
+- name: Derive the target_uuid
+  shell: "omp --get-targets | awk '/{{ item.address }}/ {print $1}'"
+  with_items: openvas_targets
+  when: openvas_targets is defined
+  register: target_uuid
+
+- name: Create a scan task for each target or use the existing one
+  shell: "(omp --get-tasks | grep '{{ item.item.address }}' || omp --config={{ config_uuid.stdout }} --create-task --name 'Scan for {{ item.item.address }}' --target={{ item.stdout }}) | awk '{print $1}' | head -n 1"
+  with_items: target_uuid.results
+  when: openvas_targets is defined
+  register: task_uuid
+
+- name: Start the scan
+  shell: "omp --start-task {{ item.stdout }}"
+  with_items: task_uuid.results
+  when: openvas_targets is defined
+
+

@@ -1,0 +1,8 @@
+---
+- hosts: openvas
+  accelerate: true
+  sudo: true
+
+  roles:
+    - openvas
+

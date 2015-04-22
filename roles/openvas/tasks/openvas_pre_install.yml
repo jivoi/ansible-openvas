@@ -1,0 +1,35 @@
+---
+- name: Download the source for OpenVAS
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ openvas_src_path }}/"
+    mode: "0644"
+  register: package_download
+  retries: 3
+  delay: 10
+  until: package_download|success
+  with_items: openvas_src_packages
+
+- name: Create the local directories for source extraction
+  file:
+    path: "{{ openvas_src_path }}/{{ item.url | basename | replace('.tar.gz', '') }}/build"
+    state: "directory"
+    group: "{{ item.owner|default('root') }}"
+    owner: "{{ item.group|default('root') }}"
+    mode: "{{ item.mode|default('0755') }}"
+    recurse: "{{ item.recurse|default('false') }}"
+  with_items: openvas_src_packages
+
+- name: Extract the source for OpenVAS
+  unarchive:
+    copy: "no"
+    src: "{{ openvas_src_path }}/{{ item.url | basename }}"
+    dest: "{{ openvas_src_path }}/"
+  with_items: openvas_src_packages
+
+- name: Remove the source archive files
+  file:
+    path: "{{ openvas_src_path }}/{{ item.url | basename }}"
+    state: absent
+  with_items: openvas_src_packages
+

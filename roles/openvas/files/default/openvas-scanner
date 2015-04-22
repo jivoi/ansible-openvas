@@ -1,0 +1,11 @@
+#
+# The address the OpenVAS Scanner is listening on.
+#
+
+SCANNER_ADDRESS=127.0.0.1
+
+#
+# The port the OpenVAS Scanner is listening on.
+#
+
+SCANNER_PORT=9391

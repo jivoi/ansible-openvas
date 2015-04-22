@@ -1,0 +1,51 @@
+#
+# The address the Greenbone Security Assistant will listen on.
+#
+
+GSA_ADDRESS=0.0.0.0
+
+#
+# The port the Greenbone Security Assistant will listen on.
+#
+
+GSA_PORT=80
+
+#
+# The file to use as private key for HTTPS
+#
+
+#GSA_SSL_PRIVATE_KEY=
+
+#
+# The file to use as certificate for HTTPS
+#
+
+#GSA_SSL_CERTIFICATE=
+
+#
+# Should HTTP get redirected to HTTPS
+# If $GSA_REDIRECT_PORT is not set it will redirect port 80.
+#
+
+#GSA_REDIRECT=1
+
+#
+# Redirect HTTP from this port to $GSA_PORT
+# For this being effective $GSA_REDIRECT has to be set to 1.
+#
+
+#GSA_REDIRECT_PORT=9394
+
+# The address the OpenVAS Manager is listening on.
+#
+
+MANAGER_ADDRESS=127.0.0.1
+
+#
+# The port the OpenVAS Manager is listening on.
+#
+
+MANAGER_PORT=9390
+
+# Problem to start up ssl on my setup..
+HTTP_ONLY=yes

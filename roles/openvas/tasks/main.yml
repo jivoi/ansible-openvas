@@ -1,0 +1,5 @@
+---
+- include: openvas_pre_install.yml
+- include: openvas_install.yml
+- include: openvas_post_install.yml
+- include: openvas_scan_configure.yml

@@ -1,0 +1,80 @@
+---
+- name: Create OpenVAS CA Certificates
+  command: openvas-mkcert -q
+  args:
+    creates: "/usr/local/var/lib/openvas/CA"
+
+- name: Synchronise Network Vulnerability Tests
+  command: openvas-nvt-sync --wget
+
+- name: Start the scanning daemon
+  service:
+    name: openvas-scanner
+    state: running
+    enabled: yes
+
+#- name: Synchronise SCAP Feed
+#  command: openvas-scapdata-sync
+
+#- name: Synchronise CertData Feed
+#  command: openvas-certdata-sync
+
+- name: Create Manager Client Certificates
+  command: openvas-mkcert-client -n -i
+  args:
+    creates: "/usr/local/var/lib/openvas/private/CA/clientkey.pem"
+
+- name: Initialise the manager database
+  command: openvasmd --rebuild
+
+- name: Create the Admin user for the Manager
+  command: "openvasmd --create-user='{{ openvas_admin_user }}' --role=Admin"
+
+- name: Download the IANA Service data
+  get_url:
+    url: "{{ openvas_iana_datasource }}"
+    dest: "{{ openvas_iana_datafile }}"
+    mode: "0644"
+  register: iana_download
+  retries: 3
+  delay: 10
+  until: iana_download|success
+
+- name: Import/Update IANA Services Names
+  command: "openvas-portnames-update {{ openvas_iana_datafile  }}"
+
+- name: Remove IANA Service data file
+  file:
+    path: "{{ openvas_iana_datafile  }}"
+    state: absent
+
+- name: Initialise the manager database
+  command: openvasmd --rebuild
+
+- name: Start the manager daemon
+  service:
+    name: openvas-manager
+    state: running
+    enabled: yes
+
+- name: Set the admin user's password
+  command: openvasmd --user="{{ openvas_admin_user }}" --new-password="{{ openvas_admin_password }}"
+
+- name: Start the greenbone-security-assistant daemon
+  service:
+    name: greenbone-security-assistant
+    state: running
+    enabled: yes
+
+- name: Deploy omp.config
+  template:
+    src: "omp.config.j2"
+    dest: "~/omp.config"
+    mode: "0644"
+
+- name: Deploy redis.config
+  template:
+    src: "redis.config.j2"
+    dest: "/etc/redis/redis.config"
+    mode: "0644"
+  notify: restart redis
